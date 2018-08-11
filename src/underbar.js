@@ -218,12 +218,32 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    return _.reduce(collection, function(everyItem, item, index) {
+      if (everyItem === false) {
+        return false;
+      } 
+      if (iterator !== undefined) {
+        return Boolean(iterator(item));
+      } else {
+        return Boolean(item);
+      }
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+      return _.reduce(collection, function(anyItem, item, index) {
+      if (anyItem === true) {
+        return true;
+      } 
+      if (iterator !== undefined) {
+        return Boolean(iterator(item));
+      } else {
+        return Boolean(item);
+      }
+    }, false);
   };
 
 
@@ -246,11 +266,31 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    var args = Array.prototype.slice.call(arguments);
+    if (args.length>1) {
+      for (var i = 1; i<args.length; i++) {
+        for (var key in args[i]) {
+          obj[key] = args[i][key]; 
+        }
+      }
+    } 
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    var args = Array.prototype.slice.call(arguments);
+    if (args.length > 1) {
+      for (var i = 1; i < args.length; i++) {
+        for (var key in args[i]) {
+          if (obj[key] === undefined) {
+            obj[key] = args[i][key]; 
+          }
+        }
+      }
+    } 
+    return obj;
   };
 
 
@@ -294,6 +334,18 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    var result = {};
+    return function() {
+      var args = Array.prototype.slice.call(arguments);
+      var argsStr = JSON.stringify(args);
+      //Check if the same argument list has been called before
+      if (result[argsStr] === undefined) {
+        //if not assigns the result to the argument list key in the result object
+        result[argsStr] = func.apply(this, arguments);
+      }
+      //returns the result for the argument list as a string
+      return result[argsStr];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -303,6 +355,8 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var passedArgs = Array.prototype.slice.call(arguments);
+    setTimeout(function() {func.apply(null, passedArgs.slice(2));}, wait);
   };
 
 
@@ -317,6 +371,9 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var returnArr = Array.prototype.slice.call(array);
+    returnArr.sort(function (a, b){return Math.random() - 0.5;});
+    return returnArr;
   };
 
 
@@ -331,6 +388,27 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+    if (Array.isArray(collection)) {
+      var returnArray = [];
+      for (var i = 0; i<collection.length;i++) {
+        if (typeof(functionOrKey) === "function") {
+          returnArray.push(functionOrKey.apply(collection[i], args));
+        } else {
+          returnArray.push(collection[i][functionOrKey]());
+        }
+      }
+      return returnArray;
+    } else {
+      var returnObj = {};
+      for (var key in collection) {
+        if (typeof(functionOrKey) === "function") {
+        returnObj[key] = functionOrKey.apply(collection[key], args);
+      } else {
+        returnObj[key] = collection[key][functionOrKey]();
+      }
+      }
+      return returnObj;
+    }
   };
 
   // Sort the object's values by a criterion produced by an iterator.
