@@ -416,6 +416,42 @@
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    var returnCollection = collection;
+    //check to make sure is an array.
+    if (Array.isArray(collection)) {
+      //if iterator is a function then run the function to check sort
+      if (typeof(iterator) === "function") {
+        //Sort by runninng two for loops inversed against each other and checking 
+        //the current vallue against the previous values
+        for (var i = 1; i<returnCollection.length; i++) {
+          for (var j = i; j>=0; j--) {
+            if (iterator(returnCollection[i]) < iterator(returnCollection[i-j]) 
+            || iterator(returnCollection[i-j] === undefined)) {
+              var smallerVal = returnCollection[i];
+              var largerVal = returnCollection[i-j];
+              returnCollection[i] = largerVal;
+              returnCollection[i-j] = smallerVal;
+            } 
+          }
+        }
+      } else if (typeof(iterator) === "string") {
+      //if iterator is a string then check the value at that object to sort
+      //Sort by runninng two for loops inversed against each other and checking 
+      //the current vallue against the previous values
+        for (var i = 1; i<returnCollection.length; i++) {
+          for (var j = i; j>=0; j--) {
+            if (returnCollection[i][iterator]<returnCollection[i-j][iterator] 
+              || returnCollection[i-j][iterator] === undefined)  {
+              var smallerVal = returnCollection[i];
+              var largerVal = returnCollection[i-j];
+              returnCollection[i] = largerVal;
+              returnCollection[i-j] = smallerVal;
+            } 
+          }
+        }
+      }
+    } 
+    return returnCollection;
   };
 
   // Zip together two or more arrays with elements of the same index
@@ -424,6 +460,21 @@
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    var args = _.sortBy(Array.prototype.slice.call(arguments), 'length');
+    var returnArray = [];
+    //Go through each of the arguments using the longest array as the maximum iterator
+    for (var a=args.length-1; a>=0;a--) {
+      for (var i = 0; i<args[args.length-1].length; i++) {
+        if (returnArray[i] === undefined) {
+        //insert the aruguments as an array.
+        returnArray[i]=[args[a][i]];
+        } else {
+        //push 
+        returnArray[i].push(args[a][i]);
+        }
+      }
+    }
+    return returnArray;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
@@ -431,6 +482,17 @@
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    var returnArr =[];
+    //go through each member of the array and 
+    //if it is another array recursively call flatten to concat to the return array
+    _.each(nestedArray, function(elem) {
+      if (Array.isArray(elem)) {
+        returnArr = returnArr.concat(_.flatten(elem));
+      } else {
+        returnArr.push(elem);
+      }
+    });
+    return returnArr;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
